@@ -17,8 +17,8 @@ public class CategoriaController {
     }
 
     @PostMapping("/criar-categoria")
-    @Operation(summary = "Criar categoria", description = "Criar uma nova ctageoria para o comercio")
-    public ResponseEntity<String> criar(@RequestBody Categoria categoria) {
+    @Operation(summary = "Criar categoria", description = "Criar uma nova categoria para o comercio")
+    public ResponseEntity<String> criarCategoria(@RequestBody Categoria categoria) {
         try {
             categoriaDao.salvar(categoria);
             return ResponseEntity.status(HttpStatus.CREATED).body("Categoria criada");
@@ -29,13 +29,13 @@ public class CategoriaController {
 
     @GetMapping("/listar-categorias")
     @Operation(summary = "Listar as categorias", description = "Mostra todas as categoria do sistema")
-    public ResponseEntity<List<Categoria>> listarTodas() {
+    public ResponseEntity<List<Categoria>> listarTodasAsCategorias() {
         return ResponseEntity.ok(categoriaDao.listartodos());
     }
 
     @GetMapping("/busca-categoria/{id}")
     @Operation(summary = "Buscar por id", description = "Buscar uma categoria pelo ID")
-    public ResponseEntity<Categoria> buscarPorId(@RequestParam Long id) {
+    public ResponseEntity<Categoria> buscarCtageoriaPorId(@RequestParam Long id) {
         try {
             return ResponseEntity.ok(categoriaDao.buscarPorId(id));
         } catch (RuntimeException e) {
@@ -45,7 +45,7 @@ public class CategoriaController {
 
     @PutMapping("/atualizar-categoria/{id}")
     @Operation(summary = "Atualizar categoria", description = "Atualizar a categoria do produto")
-    public ResponseEntity<String> atualizar(@PathVariable Long id, @RequestParam Categoria categoria) {
+    public ResponseEntity<String> atualizarCategoria(@PathVariable Long id, @RequestParam Categoria categoria) {
         categoria.setId(id);
         categoriaDao.atualizar(categoria);
         return ResponseEntity.ok("Categoria criado com sucesso!!");
@@ -53,8 +53,9 @@ public class CategoriaController {
 
     @DeleteMapping("/deletar-categoria/{id}")
     @Operation(summary = "Deletar uma categoria", description = "Delete uma categoria pelo id")
-    public ResponseEntity<String> deletar(@RequestParam Long id) {
+    public ResponseEntity<String> deletarCategoria(@RequestParam Long id) {
         categoriaDao.deletar(id);
         return ResponseEntity.ok("Categoria deletada");
     }
+
 }
