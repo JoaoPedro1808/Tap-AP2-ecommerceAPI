@@ -2,7 +2,6 @@ package com.example.ecommerceAPI.pedido;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,9 +33,10 @@ public class PedidoController {
 
     @PutMapping("/atualizar-pedido")
     @Operation(summary = "Atualizar pedido", description = "Atualizar um pedido do comercio")
-    public ResponseEntity<Pedido> atualizarPedido (@PathVariable Long id, @RequestParam Pedido pedido) {
+    public ResponseEntity<String> atualizarPedido (@RequestParam Long id, @RequestBody Pedido pedido) {
+        pedido.setId(id);
         pedidoDAO.atualizar(pedido);
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
+        return ResponseEntity.ok("Pedido atualizado com sucesso");
     }
 
     @GetMapping("/listar-pedidos")
@@ -46,10 +46,10 @@ public class PedidoController {
         return ResponseEntity.ok(pedidos);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/deletar-pedido")
     @Operation(summary = "Deletar pedido", description = "Deletar um pedido do comercio")
-    public ResponseEntity<Void> deletarPedido(@PathVariable Long id) {
+    public ResponseEntity<String> deletarPedido(@RequestParam Long id) {
         pedidoDAO.deletar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Pedido deletado");
     }
 }

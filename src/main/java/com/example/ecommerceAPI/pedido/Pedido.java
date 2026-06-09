@@ -15,8 +15,8 @@ import java.util.List;
 @Builder
 public class Pedido {
     private Long id;
-    private LocalDateTime dataPedido;
-    private String status;
+    private LocalDateTime dataCriacao;
+    private String statusPedido;
     private BigDecimal total;
     private List<ItemPedido> itens;
 }

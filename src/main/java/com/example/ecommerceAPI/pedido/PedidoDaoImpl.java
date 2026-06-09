@@ -20,13 +20,12 @@ public class PedidoDaoImpl implements PedidoDAO {
 
     private final RowMapper<Pedido> pedidoRowMapper = (rs, rowNum) -> Pedido.builder()
             .id(rs.getLong("id"))
-            .dataPedido(rs.getTimestamp("data_pedido").toLocalDateTime())
-            .status(rs.getString("status"))
+            .dataCriacao(rs.getTimestamp("data_criacao").toLocalDateTime())
+            .statusPedido(rs.getString("status_pedido"))
             .total(rs.getBigDecimal("total"))
             .build();
 
     private final RowMapper<ItemPedido> itemPedidoRowMapper = (rs, rowNum) -> ItemPedido.builder()
-            .id(rs.getLong("id"))
             .pedidoId(rs.getLong("pedido_id"))
             .produtoId(rs.getLong("produto_id"))
             .quantidade(rs.getInt("quantidade"))
@@ -40,9 +39,9 @@ public class PedidoDaoImpl implements PedidoDAO {
             throw new IllegalArgumentException("O pedido precisa ter pelo menos um produto");
         }
 
-        String sqlPedido = "INSERT INTO pedido (status, total) VALUES (:status, :total)";
+        String sqlPedido = "INSERT INTO pedido (status_pedido, total) VALUES (:status, :total)";
         MapSqlParameterSource params_pedido = new MapSqlParameterSource()
-                .addValue("status", entidade.getStatus())
+                .addValue("status", entidade.getStatusPedido())
                 .addValue("total", entidade.getTotal());
 
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
@@ -55,10 +54,10 @@ public class PedidoDaoImpl implements PedidoDAO {
 
         for (ItemPedido item : entidade.getItens()) {
             MapSqlParameterSource params_ItemsPedidos = new MapSqlParameterSource()
-                    .addValue("pedido_id", idPedidoGerado)
-                    .addValue("produto_id", item.getProdutoId())
+                    .addValue("pedidoId", idPedidoGerado)
+                    .addValue("produtoId", item.getProdutoId())
                     .addValue("quantidade", item.getQuantidade())
-                    .addValue("preco_unitario", item.getPrecoUnitario());
+                    .addValue("precoUnitario", item.getPrecoUnitario());
 
             jdbcTemplate.update(sqlItem, params_ItemsPedidos);
         }
@@ -96,10 +95,10 @@ public class PedidoDaoImpl implements PedidoDAO {
 
     @Override
     public void atualizar(Pedido entidade) {
-        String sql = "UPDATE pedido SET status =:status, total = :total WHERE id = :id";
+        String sql = "UPDATE pedido SET status_pedido = :status, total = :total WHERE id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", entidade.getId())
-                .addValue("status", entidade.getStatus())
+                .addValue("status", entidade.getStatusPedido())
                 .addValue("total", entidade.getTotal());
 
         jdbcTemplate.update(sql, params);

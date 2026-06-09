@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ItemPedido {
-    private Long id;
     private Long pedidoId;
     private Long produtoId;
     private Integer quantidade;

@@ -68,5 +68,4 @@ public class CategoriaDaoImpl implements CategoriaDAO {
         jdbcTemplate.update(sql, params);
     }
 
-
 }

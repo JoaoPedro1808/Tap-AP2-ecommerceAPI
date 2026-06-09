@@ -45,7 +45,7 @@ public class CategoriaController {
 
     @PutMapping("/atualizar-categoria/{id}")
     @Operation(summary = "Atualizar categoria", description = "Atualizar a categoria do produto")
-    public ResponseEntity<String> atualizarCategoria(@PathVariable Long id, @RequestParam Categoria categoria) {
+    public ResponseEntity<String> atualizarCategoria(@PathVariable Long id, @RequestBody Categoria categoria) {
         categoria.setId(id);
         categoriaDao.atualizar(categoria);
         return ResponseEntity.ok("Categoria criado com sucesso!!");
