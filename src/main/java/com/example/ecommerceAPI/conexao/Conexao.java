@@ -12,8 +12,4 @@ public class Conexao {
     public Conexao(DataSource datasource) {
         this.datasource = datasource;
     }
-
-    public Connection getConnection() {
-        return DataSourceUtils.getConnection(datasource);
-    }
 }
