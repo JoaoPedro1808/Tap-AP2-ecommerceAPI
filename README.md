@@ -20,31 +20,32 @@ O grande diferencial técnico e arquitetural desta aplicação é o **descarrila
 
 O ecossistema do projeto foi blindado utilizando ferramentas modernas que elevam a performance e a governança da aplicação:
 
-* **Linguagem Principal:** Java 17+ (uso estratégico de Streams e tipagem estática moderna)
-* **Framework Base:** Spring Boot 3+ (utilizado estritamente para o roteamento HTTP, injeção de dependência e ciclo de vida dos controllers)
-* **Redução de Boilerplate:** Lombok (anotações como `@Data`, `@Builder`, `@NoArgsConstructor` e `@AllArgsConstructor` para garantir entidades e DTOs limpos e imutáveis)
-* **Pool de Conexões:** **HikariCP** (Configurado sob medida para controle rígido de vazamento de recursos e limite estrito de conexões simultâneas)
-* **Documentação Interativa:** SpringDoc OpenAPI 2+ (Swagger UI) para mapeamento de contratos, payloads JSON e execução de testes funcionais
-* **Banco de Dados Relacional:** MySQL 8.0 (Instância cloud ativa hospedada via **Clever Cloud**)
-* **Ambiente de Produção (Hospedagem):** **Render** (Containerização via Dockerfile multi-stage otimizada para limites estritos de memória RAM em instâncias gratuitas)
+* **Linguagem Principal:** Java 17+
+* **Framework Base:** Spring Boot 3+
+* **Redução de Boilerplate:** Lombok 
+* **Documentação Interativa:** SpringDoc OpenAPI 2+ (Swagger UI)
+* **Banco de Dados Relacional: MySQL 8.0 
+* **Ambiente de Produção (Hospedagem):** Render(API) e Clever Cloud(Banco)
 
 ---
 
-## Engenharia de Software, Design Patterns e Clean Code
+## Princípios de Engenharia de Software e Boas Práticas Aplicadas
 
-Para combater o acoplamento e garantir a manutenibilidade, a API adota uma separação rígida de responsabilidades em camadas (`Controller -> DAO -> Database`). Abaixo detalham-se as técnicas aplicadas:
+Para garantir que a aplicação seja escalável, sustentável e de fácil manutenção, o desenvolvimento foi guiado pelos principais pilares de **Clean Code**, **S.O.L.I.D.** e **Design Patterns**:
 
-### 1. Padrão Data Access Object (DAO) Isolado
-A persistência de dados é totalmente agnóstica às regras de negócio ou de transporte HTTP. Cada entidade possui sua interface de contrato (`ProdutoDAO`, `PedidoDAO`) e sua respectiva classe de implementação JDBC (`ProdutoDaoImpl`, `PedidoDaoImpl`), mantendo as consultas SQL isoladas de outras camadas do sistema.
+### 1. Princípios de Clean Code (Código Limpo)
+* **Prevenção de Resource Leaks (Vazamento de Recursos):** Ao utilizar o `NamedParameterJdbcOperations` do Spring, o gerenciamento de cursores, buffers e fechamento de conexões com o banco na nuvem é automatizado. Isso elimina o risco de *Memory Leaks* ou tabelas travadas por transações órfãs.
+* **Expressividade do Domínio:** Variáveis genéricas e sintaxes SQL confusas foram substituídas por nomenclatura clara e contextualizada (ex: `sqlPedido`, `idPedidoGerado`, `itemPedidoRowMapper`), tornando o código autoexplicativo.
+* **Padrão Builder para Imutabilidade:** Uso do padrão *Fluent Builder* (via Lombok) nos `RowMappers` manuais. Isso garante a criação de objetos complexos e imutáveis sem a necessidade de construtores telescópicos e confusos.
 
-### 2. Controle de Chave Transacional Mestre-Detalhe (`@Transactional`)
-O maior desafio arquitetural do projeto reside no salvamento do **Pedido** e de sua lista de **Itens**.
-* **Como funciona:** O método `salvar` na classe `PedidoDaoImpl` é blindado com a anotação `@Transactional`. A API primeiro dispara o `INSERT` do cabeçalho do pedido. Através do componente `GeneratedKeyHolder`, o Java intercepta o ID auto-incrementado gerado pelo MySQL na nuvem, injeta esse ID em cada item de carrinho em tempo de execução e, em seguida, dispara o lote de inserções dos itens na tabela vinculada.
-* **Consistência Atômica (ACID):** Se qualquer inserção de item falhar no laço de repetição, a transação inteira sofre *rollback* automático pelo Spring, impedindo a existência de pedidos órfãos ou dados corrompidos no banco.
+### 2. Princípios do S.O.L.I.D.
+* **S — Single Responsibility Principle (Princípio da Responsabilidade Única):** Separação total de conceitos. Os *Controllers* cuidam exclusivamente do protocolo HTTP e payloads JSON, enquanto as classes *DAO* isolam estritamente a sintaxe e persistência SQL.
+* **O — Open/Closed Principle (Princípio Aberto/Fechado):** A arquitetura foi desenhada utilizando interfaces de contrato (ex: `PedidoDAO`). O sistema está aberto para expansão (podendo trocar o MySQL por outro banco ou por JPA no futuro), mas totalmente fechado para modificação nas camadas superiores.
+* **D — Dependency Inversion Principle (Princípio da Inversão de Dependência):** Os *Controllers* não conhecem as classes concretas de banco de dados (como `PedidoDaoImpl`). Eles dependem unicamente das interfaces (*abstrações*), delegando ao Spring Boot a injeção da implementação correta em tempo de execução.
 
-### 3. Otimização contra Memory Leaks e Conexões Zumbis
-* **Ajuste de Pool do Hikari:** Para rodar de forma saudável em planos cloud gratuitos, o pool de conexões foi travado em `maximum-pool-size=2`. Isso força a API a reutilizar conexões em sockets de forma extremamente eficiente, evitando erros de estouro de sessões simultâneas (`max_user_connections`).
-* **RowMapper Manual:** Toda a conversão do cursor bruto do banco de dados (`ResultSet`) para objetos Java ricos foi programada de forma explícita, mapeando campos snake_case do banco (ex: `status_pedido`, `categoria_id`) para atributos camelCase do Java com validações preventivas para valores nulos.
+### 3. Design Patterns (Padrões de Projeto)
+* **Data Access Object (DAO):** Padrão arquitetural utilizado para encapsular toda a lógica de acesso ao banco de dados. A camada de negócio interage apenas com entidades Java puras, permanecendo agnóstica a tabelas e dialetos SQL.
+* **Mestre-Detalhe Transacional:** Implementado no salvamento atômico de pedidos. A anotação `@Transactional` gerencia a consistência **ACID** do banco: ou o cabeçalho do pedido e todos os seus itens associados são persistidos com sucesso, ou a transação inteira sofre *rollback* em bloco caso ocorra alguma falha no laço, impedindo a corrupção de dados.
 
 ---
 
